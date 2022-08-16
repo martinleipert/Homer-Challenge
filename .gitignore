@@ -1,3 +1,7 @@
 venv
 .idea
 dataset/*
+ArtificialPapyri/Ressources/Backgrounds
+ArtificialPapyri/Ressources/Fonts
+ArtificialPapyri/Ressources/Texts
+ArtificialPapyri/Dataset

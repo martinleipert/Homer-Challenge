@@ -14,12 +14,12 @@ def main():
     # First training is pretraining
     # epochs = 50
     training_func(dataset_name=dataset_name_artificial, model_dir="model_store/artificial",
-                  model_name="model_artificial.pth", epochs=1)
+                  model_name="model_artificial.pth", epochs=50)
 
     # The model trained on real papyri
     # epochs=200,
     training_func(dataset_name=dataset_name_training, model_dir="model_store/papyri",
-                  model_name="model_artificial.pth", epochs=1,
+                  model_name="model_artificial.pth", epochs=200,
                   initialization="model_store/artificial/model_artificial_best.pth")
 
 

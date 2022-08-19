@@ -157,7 +157,7 @@ def training_func(dataset_name="ICFHR2022_train", learning_rate=1e-4, model_dir=
                 now = time.strftime("%m/%d/%Y, %H:%M:%S")
 
                 print(
-                    f'{now} - Epoch: {epoch} | Eval Iteration: {iteration} | Eval score: {sample_score:1.5f}'
+                    f'{now} - Epoch: {epoch} | Eval Iteration: {iteration} | Eval Score: {sample_score:1.5f}'
                 )
             pass
 

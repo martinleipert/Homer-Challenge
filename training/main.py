@@ -20,7 +20,7 @@ def main():
     # epochs=200,
     training_func(dataset_name=dataset_name_training, model_dir="model_store/papyri",
                   model_name="model_artificial.pth", epochs=1,
-                  initialization="model_store/artificial/model_artificial.pth")
+                  initialization="model_store/artificial/model_artificial_best.pth")
 
 
 if __name__ == "__main__":

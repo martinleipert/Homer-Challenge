@@ -165,7 +165,7 @@ def training_func(dataset_name="ICFHR2022_train", learning_rate=1e-4, model_dir=
 
         if eval_score > best_eval_score:
             best_eval_score = eval_score
-            model_file_name = f"{model_base}_e{epoch}.{file_ending}"
+            model_file_name = f"{model_base}_best.{file_ending}"
             modeL_out_path = os.path.join(model_dir, model_file_name)
             torch.save(model.state_dict(), modeL_out_path)
 

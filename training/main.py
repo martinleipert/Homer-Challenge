@@ -15,13 +15,16 @@ from PytorchDatasetFromFO import FiftyOneTorchDataset
 from Augmentation import augmentation_func
 
 
-PATH = "model.pth"
+DATASETS_AVAILABLE = ["ICFHR2022_train", "ICFHR2022_artificial"]
+epochs = 50
+
+PATH = "model_pretraining.pth"
 BATCH_SIZE = 1
 
 
 def main():
     # Load COCO dataset from disk
-    dataset = load_dataset("ICFHR2022_train")
+    dataset = load_dataset(DATASETS_AVAILABLE[1])
 
     # splitted = random_split(dataset, {"train": 0.9, "val": 0.1})
     # train_dataset = splitted["train"]
@@ -34,7 +37,6 @@ def main():
     model = model.to("cuda")
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
-    epochs = 200
 
     coco_dataset = FiftyOneTorchDataset(
         dataset,
@@ -65,7 +67,7 @@ def main():
     # session = fiftyone.launch_app(coco_dataset)
 
     for epoch in range(epochs):
-        """
+
         print("Epoch - {} Started".format(epoch))
         start_time = time.time()
 
@@ -112,9 +114,9 @@ def main():
 
         end_time = time.time()
         print(f"Epoch - {epoch} Ended, Duration: {end_time - start_time}")
-        """
+
         model.eval()
-        eval_loss = 0
+        eval_score = 0
 
         for iteration, (image, annotations) in enumerate(coco_eval_loader):
             image = image.float().to("cuda") / 255
@@ -132,9 +134,11 @@ def main():
                 bboxes = result["boxes"]
                 scores = result["scores"]
                 labels = result["labels"]
+
+                eval_score += scores.mean() / n_samples_eval
             pass
 
-        print(f"Epoch - Eval Loss: {eval_loss}")
+        print(f"Epoch - Eval Loss: {eval_score}")
 
     torch.save(model.state_dict(), PATH)
 

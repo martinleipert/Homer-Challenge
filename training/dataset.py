@@ -34,36 +34,12 @@ random_split(coco_dataset, {"eval": 0.1, "train": 0.9})
 
 coco_dataset.persistent = True
 
-"""
-dataset = COCODataset.from_json(
-    os.path.join(DATASET_PATH, DATASET_ANNOTATION),
-    dataset_type=COCODetectionDataset,
-    rel_dir=DATASET_PATH,
-    name="ICFHR2022_train")
-"""
+# Create a space for an artificial dataset
+artificial_dataset = COCODataset("ICFHR2022_artificial")
 
-"""
-dataset = COCODataset.from_dir(
-    dataset_dir=DATASET_PATH,
-    # data_path=os.path.join(DATASET_PATH),
-    dataset_type=COCODetectionDataset,
-    name="ICFHR2022_train",
-    labels_path=os.path.join(DATASET_PATH, DATASET_ANNOTATION)
-)
-"""
+# Copy its properties
+artificial_dataset.media_type = coco_dataset.media_type
+artificial_dataset.default_classes = coco_dataset.default_classes
+artificial_dataset.info["categories"] = coco_dataset.info["categories"]
 
-"""
-train_dataset = COCODataset.from_json(
-    os.path.join(DATASET_PATH, DATASET_ANNOTATION),
-    "ICFHR2022_train"
-)
-train_dataset = COCODataset.from_archive(
-    f"{DATASET_PATH}.zip",
-    COCODetectionDataset,
-    "images",
-    DATASET_ANNOTATION,
-    "ICFHR2022_train"
-)
-
-train_dataset = COCODataset.from_labeled_images()
-"""
+artificial_dataset.persistent = True

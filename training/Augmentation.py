@@ -73,10 +73,18 @@ def clip_boxes(bboxes, im_shape):
     :param im_shape:
     :return:
     """
-    bboxes[:, 0] = np.clip(bboxes[:, 0], 0, im_shape[1])
-    bboxes[:, 1] = np.clip(bboxes[:, 1], 0, im_shape[0])
-    bboxes[:, 2] = np.clip(bboxes[:, 2], 0, im_shape[1])
-    bboxes[:, 3] = np.clip(bboxes[:, 3], 0, im_shape[0])
+    if bboxes.size == 0:
+        return bboxes
+    if len(np.shape(bboxes)) == 1:
+        bboxes[0] = np.clip(bboxes[0], 0, im_shape[1])
+        bboxes[1] = np.clip(bboxes[1], 0, im_shape[0])
+        bboxes[2] = np.clip(bboxes[2], 0, im_shape[1])
+        bboxes[3] = np.clip(bboxes[3], 0, im_shape[0])
+    else:
+        bboxes[:, 0] = np.clip(bboxes[:, 0], 0, im_shape[1])
+        bboxes[:, 1] = np.clip(bboxes[:, 1], 0, im_shape[0])
+        bboxes[:, 2] = np.clip(bboxes[:, 2], 0, im_shape[1])
+        bboxes[:, 3] = np.clip(bboxes[:, 3], 0, im_shape[0])
     return bboxes
 
 
@@ -86,7 +94,12 @@ def trafo_bboxes_from_coco(bboxes):
     :param bboxes: coco bboxes as numpy array
     :return: transformed bboxes as numpy array
     """
-    bboxes[:, 2:4] = np.add(bboxes[:, 0:2], bboxes[:, 2:4])
+    if bboxes.size == 0:
+        return bboxes
+    if len(np.shape(bboxes)) == 1:
+        bboxes[2:4] = np.add(bboxes[0:2], bboxes[2:4])
+    else:
+        bboxes[:, 2:4] = np.add(bboxes[:, 0:2], bboxes[:, 2:4])
     return bboxes
 
 
@@ -96,5 +109,10 @@ def trafo_bboxes_to_coco(bboxes):
     :param bboxes: coco bboxes as numpy array
     :return: transformed bboxes as numpy array
     """
-    bboxes[:, 2:4] = np.subtract(bboxes[:, 2:4], bboxes[:, 0:2])
+    if bboxes.size == 0:
+        return bboxes
+    if len(np.shape(bboxes)) == 1:
+        bboxes[2:4] = np.subtract(bboxes[2:4], bboxes[0:2])
+    else:
+        bboxes[:, 2:4] = np.subtract(bboxes[:, 2:4], bboxes[:, 0:2])
     return bboxes

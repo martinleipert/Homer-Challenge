@@ -14,6 +14,7 @@ def main():
     # List all available datasets
     datasets = [
         "ICFHR2022_train",
+        "ICFHR2022_test",
         "ICFHR2022_artificial"
     ]
 

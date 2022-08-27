@@ -14,6 +14,7 @@ They compromise of the following sets:
 * 'ICFHR2022_artificial' - Dataset containing the synthetic papyri created by Google Fonts, ancient greek texts, 
 some textures and PIL
 
+IMPORTANT: First execute dataset.py, afterwards CreateArtificialPapyri, so the datasets are setup in a correct manner.
 
 ### Dataset inspection
 Inspect the dataset via a webbrowser (by help of the fiftyone package)

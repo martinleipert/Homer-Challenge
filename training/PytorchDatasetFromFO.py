@@ -51,7 +51,6 @@ class FiftyOneTorchDataset(torch.utils.data.Dataset):
         sample = self.samples[img_path]
         metadata = sample.metadata
         img = Image.open(img_path).convert("RGB")
-        # img = numpy.swapaxes(img, 0, 1)
         img = numpy.array(img)
         img = numpy.moveaxis(img, 2, 0)
 
@@ -69,18 +68,10 @@ class FiftyOneTorchDataset(torch.utils.data.Dataset):
                 det, metadata, category_id=category_id,
             )
             x, y, w, h = coco_obj.bbox
-            # boxes.append([x, y, x + w, y + h])
             boxes.append([x, y, w, h])
             labels.append(coco_obj.category_id)
             area.append(coco_obj.area)
             iscrowd.append(coco_obj.iscrowd)
-
-            # New target
-            # new_target.append({
-            #     "labels" : torch.Tensor([coco_obj.category_id]),
-            #     "boxes" : torch.Tensor([[x, y, x + w, y + h]])
-            # })
-
 
         target = {}
         target["bboxes"] = torch.as_tensor(boxes, dtype=torch.float32).to("cuda")
@@ -91,7 +82,6 @@ class FiftyOneTorchDataset(torch.utils.data.Dataset):
 
         if self.transforms is not None:
             img, target = self.transforms(img, target)
-            # img, target = self.transforms(img, target)
         else:
             img, target = no_augmentation_func(img, target)
 

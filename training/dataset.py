@@ -35,11 +35,11 @@ TESTING_ANNOTATION = "HomerCompTestingReadCoco.json"
 
 testing_dataset = COCODataset.from_dir(
     dataset_type=COCODetectionDataset,
-    data_path=DATASET_PATH,
-    labels_path=os.path.join(VALID_PATH, VALID_ANNOTATION),
+    data_path=TESTING_PATH,
+    labels_path=os.path.join(TESTING_PATH, TESTING_ANNOTATION),
     include_id=True,
     label_field="annotations",
-    name="ICFHR2022_validation"
+    name="ICFHR2022_test"
 )
 
 testing_dataset.persistent = True

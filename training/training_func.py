@@ -21,7 +21,7 @@ BATCH_SIZE = 1
 
 
 def training_func(dataset_name="ICFHR2022_train", learning_rate=1e-4, model_dir="model_store",
-                  model_name="model.pth", epochs=50, initialization=None, decay=20, decay_factor=0.7):
+                  model_name="model.pth", epochs=50, initialization=None, decay=20, decay_factor=0.7, optimizer="SGD"):
     """
     Standardized training function
     :param dataset_name: Name of the dataset to use
@@ -56,7 +56,10 @@ def training_func(dataset_name="ICFHR2022_train", learning_rate=1e-4, model_dir=
     model = model.to("cuda")
 
     # Learning rate and optimzation
-    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+    if optimizer == "SGD":
+        optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+    else:
+        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     lr_sheduler = StepLR(optimizer, step_size=decay, gamma=decay_factor)
 
     coco_dataset = FiftyOneTorchDataset(

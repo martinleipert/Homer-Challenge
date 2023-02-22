@@ -18,11 +18,20 @@ def main():
 
     # First training is pretraining
     training_func(dataset_name=dataset_name_artificial, model_dir="model_store/artificial",
-                  model_name="model_artificial.pth", epochs=120, decay=40, learning_rate=1e-2, decay_factor=0.5)
+                  model_name="model_artificial.pth", epochs=60, decay=20, learning_rate=2e-4, decay_factor=0.5,
+                  optimizer="ADAM")
 
+    # Training using ADAM
     training_func(dataset_name=dataset_name_training, model_dir="model_store/papyri",
-                  model_name="model_papyri.pth", epochs=1000, learning_rate=5e-3,
-                  initialization="model_store/artificial/model_artificial_best.pth", decay_factor=0.7, decay=125)
+                  model_name="model_papyri_adam.pth", epochs=100, learning_rate=2e-4,
+                  initialization="model_store/artificial/model_artificial_best.pth", decay_factor=0.5, decay=50,
+                  optimizer="ADAM")
+
+    # Finetuning
+    # training_func(dataset_name=dataset_name_training, model_dir="model_store/papyri",
+    #               model_name="model_papyri_adam2.pth", epochs=100, learning_rate=5e-5,
+    #               initialization="model_store/papyri/model_papyri_adam_best.pth", decay_factor=0.5, decay=50,
+    #               optimizer="ADAM")
 
 
 if __name__ == "__main__":

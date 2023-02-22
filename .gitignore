@@ -6,3 +6,4 @@ ArtificialPapyri/Ressources/Fonts
 ArtificialPapyri/Ressources/Texts
 ArtificialPapyri/Dataset
 training/model_store
+predict/final_models/*

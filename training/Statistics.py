@@ -12,3 +12,9 @@ print("Letter - No. of occurences")
 
 for letter, count in letter_statistics.items():
     print(f"{letter}: {count}")
+
+widths = dataset.values(f"metadata.width")
+heights = dataset.values(f"metadata.height")
+
+print(f"Max width: {max(widths)}")
+print(f"Max height: {max(heights)}")

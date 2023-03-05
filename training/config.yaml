@@ -1,0 +1,17 @@
+dataset:
+  name: "ICFHR2022_train"
+  shuffle: true
+
+training:
+  learning_rate: 2e-4
+  epochs: 100
+  decay_epochs: 30
+  decay_factor: 0.7
+  optimizer: ADAM
+  batch_size: 1
+
+model:
+  initialization: null
+  name: model.pth
+  # Fixed: letters of greek alphabet
+  num_classes: 26

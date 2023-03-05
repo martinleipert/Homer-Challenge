@@ -15,13 +15,14 @@ from torchvision.models.detection import retinanet_resnet50_fpn_v2
 # Imports from own project
 from PytorchDatasetFromFO import FiftyOneTorchDataset
 from Augmentation import augmentation_func
+from omegaconf import DictConfig, OmegaConf
 
-# Define the batch size
-BATCH_SIZE = 1
+torch.backends.cudnn.enabled = True
+torch.backends.cudnn.benchmark = True
 
 
-def training_func(dataset_name="ICFHR2022_train", learning_rate=1e-4, model_dir="model_store",
-                  model_name="model.pth", epochs=50, initialization=None, decay=20, decay_factor=0.7, optimizer="SGD"):
+@hydra.main(config_path="config.yaml")
+def training_func(cfg: DictConfig):
     """
     Standardized training function
     :param dataset_name: Name of the dataset to use
@@ -35,32 +36,30 @@ def training_func(dataset_name="ICFHR2022_train", learning_rate=1e-4, model_dir=
     :return:
     """
 
+
     # region Initialization
     # Eval store used for saving the best parameters
     best_eval_score = 0
 
     # Storage
-    model_base, file_ending = model_name.split(".")
-    model_dir = os.path.join(os.path.dirname(__file__), model_dir)
-    if not os.path.exists(model_dir):
-        os.mkdir(model_dir)
+    model_base, file_ending = cfg.model.name.split(".")
 
     # Load COCO dataset from disk
-    dataset = load_dataset(dataset_name)
+    dataset = load_dataset(cfg.dataset.name)
 
     # Load model
-    model = retinanet_resnet50_fpn_v2(num_classes=26)
+    model = retinanet_resnet50_fpn_v2(num_classes=cfg.model.num_classes)
     # Initialize model
-    if initialization is not None:
-        model.load_state_dict(torch.load(initialization))
+    # if initialization is not None:
+    #     model.load_state_dict(torch.load(initialization))
     model = model.to("cuda")
 
     # Learning rate and optimzation
-    if optimizer == "SGD":
-        optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
+    if cfg.training.optimizer == "SGD":
+        optimizer = torch.optim.SGD(model.parameters(), lr=cfg.training.learning_rate)
     else:
-        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-    lr_sheduler = StepLR(optimizer, step_size=decay, gamma=decay_factor)
+        optimizer = torch.optim.Adam(model.parameters(), lr=cfg.training.learning_rate)
+    lr_sheduler = StepLR(optimizer, step_size=cfg.training.decay_epochs, gamma=cfg.training.decay_factor)
 
     coco_dataset = FiftyOneTorchDataset(
         dataset,
@@ -74,22 +73,22 @@ def training_func(dataset_name="ICFHR2022_train", learning_rate=1e-4, model_dir=
 
     coco_loader = DataLoader(
         coco_dataset,
-        batch_size=BATCH_SIZE,
+        batch_size=cfg.training.batch_size,
         collate_fn=FiftyOneTorchDataset.collate_fn,
-        shuffle=True,
+        shuffle=cfg.dataset.shuffle,
     )
 
     coco_eval_loader = DataLoader(
         coco_dataset_eval,
-        batch_size=BATCH_SIZE,
+        batch_size=cfg.training.batch_size,
         collate_fn=FiftyOneTorchDataset.collate_fn,
-        shuffle=True,
+        shuffle=cfg.dataset.shuffle,
     )
 
     n_samples_eval = len(coco_eval_loader)
     # endregion Initialization
 
-    for epoch in range(epochs):
+    for epoch in range(cfg.training.epochs):
 
         print("Epoch - {} Started".format(epoch))
         start_time = time.time()
@@ -167,13 +166,11 @@ def training_func(dataset_name="ICFHR2022_train", learning_rate=1e-4, model_dir=
         if eval_score > best_eval_score:
             best_eval_score = eval_score
             model_file_name = f"{model_base}_best.{file_ending}"
-            modeL_out_path = os.path.join(model_dir, model_file_name)
-            torch.save(model.state_dict(), modeL_out_path)
+            torch.save(model.state_dict(), model_file_name)
 
         if epoch % 10 == 0:
             model_file_name = f"{model_base}_e{epoch}.{file_ending}"
-            modeL_out_path = os.path.join(model_dir, model_file_name)
-            torch.save(model.state_dict(), modeL_out_path)
+            torch.save(model.state_dict(), model_file_name)
 
         lr_sheduler.step()
         # endregion Evaluation

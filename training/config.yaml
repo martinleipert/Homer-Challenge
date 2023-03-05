@@ -14,4 +14,7 @@ model:
   initialization: null
   name: model.pth
   # Fixed: letters of greek alphabet
-  num_classes: 26
+  torch_module:
+    _model: torchvision.models.detection.retinanet_resnet50_fpn_v2
+    pretrained: true
+    num_classes: 26

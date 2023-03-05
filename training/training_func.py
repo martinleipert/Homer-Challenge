@@ -17,6 +17,12 @@ from PytorchDatasetFromFO import FiftyOneTorchDataset
 from Augmentation import augmentation_func
 from omegaconf import DictConfig, OmegaConf
 
+import logging
+from hydra.utils import instantiate
+
+# A logger for this file
+log = logging.getLogger(__name__)
+
 torch.backends.cudnn.enabled = True
 torch.backends.cudnn.benchmark = True
 
@@ -36,7 +42,6 @@ def training_func(cfg: DictConfig):
     :return:
     """
 
-
     # region Initialization
     # Eval store used for saving the best parameters
     best_eval_score = 0
@@ -48,7 +53,7 @@ def training_func(cfg: DictConfig):
     dataset = load_dataset(cfg.dataset.name)
 
     # Load model
-    model = retinanet_resnet50_fpn_v2(num_classes=cfg.model.num_classes)
+    model = instantiate(cfg.model.torch_module)
     # Initialize model
     # if initialization is not None:
     #     model.load_state_dict(torch.load(initialization))
@@ -127,13 +132,13 @@ def training_func(cfg: DictConfig):
             now = time.strftime("%m/%d/%Y, %H:%M:%S")
 
             # Iteration result
-            print(
+            log.info(
                 f'{now} - Epoch: {epoch} | Iteration: {iteration} | Classification loss: {class_loss:1.5f} | '
                 f'Regression loss: {regress_loss:1.5f} | Running loss: {np.mean(epoch_loss):1.5f}'
             )
 
         end_time = time.time()
-        print(f"Epoch - {epoch} Ended, Learning Rate {lr_sheduler.get_lr()[0]}, Duration: {end_time - start_time}")
+        log.info(f"Epoch - {epoch} Ended, Learning Rate {lr_sheduler.get_lr()[0]}, Duration: {end_time - start_time}")
         # endregion Training
 
         # region Evaluation
@@ -155,12 +160,12 @@ def training_func(cfg: DictConfig):
                 # Iteration result
                 now = time.strftime("%m/%d/%Y, %H:%M:%S")
 
-                print(
+                log.info(
                     f'{now} - Epoch: {epoch} | Eval Iteration: {iteration} | Eval Score: {sample_score:1.5f}'
                 )
             pass
 
-        print(f"Epoch - Eval Score: {eval_score}")
+        log.info(f"Epoch - Eval Score: {eval_score}")
 
         # Store model if it's the current best
         if eval_score > best_eval_score:

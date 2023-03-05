@@ -20,4 +20,10 @@ some textures and PIL. Has to be generated first.
 Inspect the dataset via a webbrowser (by help of the fiftyone package)
 just call the script "Inspect_Ground_Truth.py" via command line 
 
+### Introduction to the GAN approach: 
 
+https://medium.com/ixorthink/realistic-document-generation-using-generative-adversarial-networks-37d8188f0e5c 
+
+https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html
+
+Letters are created with a GAN and inserted on a Document

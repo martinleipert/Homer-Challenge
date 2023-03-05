@@ -5,7 +5,7 @@ import os
 from fiftyone import Dataset as COCODataset
 from fiftyone.types import COCODetectionDataset
 from fiftyone.core.dataset import delete_datasets
-from fiftyone.utils.splits import random_split
+from fiftyone.utils.random import random_split
 
 # Delete datasets
 # Hard reset
@@ -13,36 +13,40 @@ delete_datasets("*")
 
 # First dataset is the provided training dataset
 DATASET_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataset", "HomerCompTraining")
-DATASET_ANNOTATION = "HomerCompTrainingReadCoco.json"
+DATASET_ANNOTATION = "HomerCompTrainingReadCoco_Copy.json"
 
-coco_dataset = COCODataset.from_dir(
-    dataset_type=COCODetectionDataset,
-    data_path=DATASET_PATH,
-    labels_path=os.path.join(DATASET_PATH, DATASET_ANNOTATION),
-    include_id=True,
-    label_field="annotations",
-    name="ICFHR2022_train"
-)
+if os.path.exists(DATASET_PATH):
 
-# We need validation data and therefore perform a split
-random_split(coco_dataset, {"eval": 0.1, "train": 0.9})
+    coco_dataset = COCODataset.from_dir(
+        dataset_type=COCODetectionDataset,
+        data_path=DATASET_PATH,
+        labels_path=os.path.join(DATASET_PATH, DATASET_ANNOTATION),
+        include_id=True,
+        label_field="annotations",
+        name="ICFHR2022_train"
+    )
 
-coco_dataset.persistent = True
+    # We need validation data and therefore perform a split
+    random_split(coco_dataset, {"eval": 0.1, "train": 0.9})
+
+    coco_dataset.persistent = True
 
 # Load the provided dataset for testing
 TESTING_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataset", "HomerCompTesting")
 TESTING_ANNOTATION = "HomerCompTestingReadCoco.json"
 
-testing_dataset = COCODataset.from_dir(
-    dataset_type=COCODetectionDataset,
-    data_path=TESTING_PATH,
-    labels_path=os.path.join(TESTING_PATH, TESTING_ANNOTATION),
-    include_id=True,
-    label_field="annotations",
-    name="ICFHR2022_test"
-)
+if os.path.exists(TESTING_PATH):
 
-testing_dataset.persistent = True
+    testing_dataset = COCODataset.from_dir(
+        dataset_type=COCODetectionDataset,
+        data_path=TESTING_PATH,
+        labels_path=os.path.join(TESTING_PATH, TESTING_ANNOTATION),
+        include_id=True,
+        label_field="annotations",
+        name="ICFHR2022_test"
+    )
+
+    testing_dataset.persistent = True
 
 # Create a space for an artificial dataset
 # The dataset will be filled after this in CreateArtificialPapyri

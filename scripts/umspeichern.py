@@ -8,7 +8,7 @@ parser.add_argument("filepath", help="Path to file to convert from binary to tex
 
 args = parser.parse_args()
 
-path = Path(args.path)
+path = Path(args.filepath)
 
 with open(path, "rb") as openfile:
     raw_text = openfile.read()

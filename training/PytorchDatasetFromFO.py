@@ -2,7 +2,7 @@ import torch
 import fiftyone.utils.coco as fouc
 import numpy
 from PIL import Image, ImageFile
-from .Augmentation import no_augmentation_func
+from training.Augmentation import no_augmentation_func
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 

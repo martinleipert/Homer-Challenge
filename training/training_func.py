@@ -10,7 +10,7 @@ from fiftyone import load_dataset
 import torch
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import StepLR
-from torchvision.models.detection import retinanet_resnet50_fpn_v2
+from torchvision.models.detection import RetinaNet
 
 # Imports from own project
 from PytorchDatasetFromFO import FiftyOneTorchDataset
@@ -18,7 +18,8 @@ from Augmentation import augmentation_func
 from omegaconf import DictConfig, OmegaConf
 
 import logging
-from hydra.utils import instantiate
+import hydra
+from hydra.utils import instantiate, call
 
 # A logger for this file
 log = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ torch.backends.cudnn.enabled = True
 torch.backends.cudnn.benchmark = True
 
 
-@hydra.main(config_path="config.yaml")
+@hydra.main(config_name="config.yaml")
 def training_func(cfg: DictConfig):
     """
     Standardized training function
@@ -186,4 +187,4 @@ def training_func(cfg: DictConfig):
 
 
 if __name__ == "__main__":
-    main()
+    training_func()

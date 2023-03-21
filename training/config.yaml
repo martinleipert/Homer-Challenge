@@ -15,6 +15,7 @@ model:
   name: model.pth
   # Fixed: letters of greek alphabet
   torch_module:
-    _model: torchvision.models.detection.retinanet_resnet50_fpn_v2
-    pretrained: true
-    num_classes: 26
+    _target_: torchvision.models.detection.retinanet_resnet50_fpn_v2
+    kwargs:
+      pretrained: true
+      num_classes: 26

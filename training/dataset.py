@@ -13,7 +13,7 @@ delete_datasets("*")
 
 # First dataset is the provided training dataset
 DATASET_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataset", "HomerCompTraining")
-DATASET_ANNOTATION = "HomerCompTrainingReadCoco_Copy.json"
+DATASET_ANNOTATION = "HomerCompTrainingReadCoco.json"
 
 if os.path.exists(DATASET_PATH):
 

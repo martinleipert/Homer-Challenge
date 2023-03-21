@@ -158,13 +158,9 @@ def training_func(cfg: DictConfig):
                 sample_score = scores.mean()
                 eval_score += sample_score / n_samples_eval
 
-                # Iteration result
-                now = time.strftime("%m/%d/%Y, %H:%M:%S")
-
                 log.info(
-                    f'{now} - Epoch: {epoch} | Eval Iteration: {iteration} | Eval Score: {sample_score:1.5f}'
+                    f'Epoch: {epoch} | Eval Iteration: {iteration} | Eval Score: {sample_score:1.5f}'
                 )
-            pass
 
         log.info(f"Epoch - Eval Score: {eval_score}")
 
@@ -183,7 +179,8 @@ def training_func(cfg: DictConfig):
 
     # Save the final model
     final_model = model.state_dict()
-    torch.save(final_model, os.path.join(model_dir, model_name))
+    model_file_name = f"{model_base}_final.{file_ending}"
+    torch.save(final_model, model_file_name)
 
 
 if __name__ == "__main__":

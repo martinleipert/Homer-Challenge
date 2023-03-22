@@ -21,9 +21,9 @@ def main():
     # Let the user decide which set to open
     parser = argparse.ArgumentParser("select the dataset to display")
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("--originalTraining", action="store_true", type=bool,
+    group.add_argument("--originalTraining", action="store_true",
                        help="The original training dataset provided by LME")
-    group.add_argument("--syntheticTraining", action="store_true", type=bool,
+    group.add_argument("--syntheticTraining", action="store_true",
                        help="The synthetic dataset created with google fonts, "
                             "some textures and ancient greek txt-Files and PIL")
 

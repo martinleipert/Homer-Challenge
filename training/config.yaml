@@ -2,6 +2,10 @@ dataset:
   name: "ICFHR2022_train"
   shuffle: true
 
+dataset_test:
+  name: "ICFHR2022_test"
+  shuffle: false
+
 training:
   learning_rate: 2e-4
   epochs: 100

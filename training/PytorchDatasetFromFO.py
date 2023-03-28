@@ -5,6 +5,11 @@ from PIL import Image, ImageFile
 from training.Augmentation import no_augmentation_func
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
+"""
+Based on FiftyOneExamples:
+https://github.com/voxel51/fiftyone-examples/blob/master/examples/pytorch_detection_training.ipynb
+"""
+
 
 class FiftyOneTorchDataset(torch.utils.data.Dataset):
     """A class to construct a PyTorch dataset from a FiftyOne dataset.

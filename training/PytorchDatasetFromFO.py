@@ -79,14 +79,14 @@ class FiftyOneTorchDataset(torch.utils.data.Dataset):
             iscrowd.append(coco_obj.iscrowd)
 
         target = {}
-        target["bboxes"] = torch.as_tensor(boxes, dtype=torch.float32).to("cuda")
+        target["boxes"] = torch.as_tensor(boxes, dtype=torch.float32).to("cuda")
         target["labels"] = torch.as_tensor(labels, dtype=torch.int64).to("cuda")
         target["image_id"] = torch.as_tensor([idx]).to("cuda")
         target["area"] = torch.as_tensor(area, dtype=torch.float32).to("cuda")
         target["iscrowd"] = torch.as_tensor(iscrowd, dtype=torch.int64).to("cuda")
 
         if self.transforms is not None:
-            img, target = self.transforms(img, target)
+            img, target = self.transforms(image=img, target=target)
         else:
             img, target = no_augmentation_func(img, target)
 

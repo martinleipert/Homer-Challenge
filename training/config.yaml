@@ -7,12 +7,13 @@ dataset_test:
   shuffle: false
 
 training:
-  learning_rate: 2e-4
-  epochs: 100
-  decay_epochs: 30
-  decay_factor: 0.7
+  learning_rate: 1e-4
+  epochs: 200
+  decay_epochs: 50
+  decay_factor: 0.5
   optimizer: ADAM
-  batch_size: 1
+  # optimizer: SGD
+  batch_size: 4
 
 model:
   initialization: null

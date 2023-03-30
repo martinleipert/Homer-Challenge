@@ -6,16 +6,28 @@ import numpy as np
 # Dataset Handling
 from fiftyone import load_dataset
 
+
 # Pytorch imports
 import torch
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import StepLR
-from torchvision.models.detection import RetinaNet, MaskRCNN, FasterRCNN
+from torchvision.models.detection import RetinaNet, MaskRCNN, FasterRCNN, FasterRCNN_ResNet50_FPN_V2_Weights
+import torch.nn as nn
+from torchvision.transforms import RandomCrop
+
+from torchvision.models.detection.faster_rcnn import FastRCNNConvFCHead, RPNHead, AnchorGenerator
+from torchvision.models.detection.mask_rcnn import MaskRCNNHeads
+from torchvision.models.detection.rpn import RPNHead, RegionProposalNetwork
+
+from focalnet.FocalNet import FocalNet
+from focalnet.model_config import model
 
 # Imports from own project
 from PytorchDatasetFromFO import FiftyOneTorchDataset
 from Augmentation import augmentation_func
 from omegaconf import DictConfig, OmegaConf
+
+from timm import create_model
 
 import logging
 import hydra
@@ -54,7 +66,78 @@ def training_func(cfg: DictConfig):
     dataset = load_dataset(cfg.dataset.name)
 
     # Load model
-    model = instantiate(cfg.model.torch_module)
+    # model = instantiate(cfg.model.torch_module)
+
+    """
+    TYPE: focalnet_huge_fl4
+    NAME: focalnet_huge_fl4
+    PRETRAINED: True
+    NUM_CLASSES: 21842
+    DROP_PATH_RATE:
+    FOCAL:
+    EMBED_DIM: 352
+    DEPTHS: 
+    FOCAL_LEVELS: [4, 4, 4, 4]
+    FOCAL_WINDOWS:
+    USE_CONV_EMBED: True
+    USE_POSTLN: True
+    USE_LAYERSCALE: True
+    USE_POSTLN_IN_MODULATION:
+    """
+    """
+    "focal",
+    pretrained = False,
+    img_size = 224,
+    num_classes = 26,
+    drop_path_rate = 0.5,
+    focal_levels = [4, 4, 4, 4],
+    focal_windows = [3, 3, 3, 3],
+    use_conv_embed = True,
+    use_layerscale = True,
+    use_postln = True,
+    use_postln_in_modulation = True,
+    normalize_modulator = True,
+    """
+
+    # model = create_model(model)
+
+    backbone = FocalNet(
+        pretrain_img_size=1333,
+        patch_size=4,
+        in_chans=3,
+        embed_dim=128,
+        depths=(2, 2, 4, 4, 2),
+        mlp_ratio=4.,
+        drop_rate=0.,
+        drop_path_rate=0.2,
+        norm_layer=nn.LayerNorm,
+        patch_norm=True,
+        out_indices=(0, 1, 2, 3, 4),
+        frozen_stages=-1,
+        focal_levels=[4, 4, 4, 4, 4],
+        focal_windows=[3, 3, 3, 3, 3],
+        use_conv_embed=True,
+        use_checkpoint=False,
+        use_layerscale=True
+        )
+
+    backbone.out_channels = 128
+
+    # anchor_generator = AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
+    #                                   aspect_ratios=((0.5, 1.0, 2.0),))
+
+    # rpn = RegionProposalNetwork()
+
+    """
+    box_head = FastRCNNConvFCHead(
+        (backbone.out_channels[3], 7, 7), backbone.out_channels, [1024], norm_layer=nn.BatchNorm2d
+    )
+    mask_head = MaskRCNNHeads(backbone.out_channels[3], backbone.out_channels, 1, norm_layer=nn.BatchNorm2d)
+
+    rpn_head = RPNHead(backbone.out_channels, 32)
+    """
+
+    model = FasterRCNN(backbone, num_classes=26) #, rpn_anchor_generator=anchor_generator)
 
     # Initialize model
     # if initialization is not None:
@@ -65,8 +148,10 @@ def training_func(cfg: DictConfig):
     if cfg.training.optimizer == "SGD":
         optimizer = torch.optim.SGD(model.parameters(), lr=cfg.training.learning_rate)
     else:
-        optimizer = torch.optim.Adam(model.parameters(), lr=cfg.training.learning_rate)
+        optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.training.learning_rate)
     lr_sheduler = StepLR(optimizer, step_size=cfg.training.decay_epochs, gamma=cfg.training.decay_factor)
+
+    # transforms = RandomCrop(1280, pad_if_needed=True)
 
     coco_dataset = FiftyOneTorchDataset(
         dataset,
@@ -87,7 +172,7 @@ def training_func(cfg: DictConfig):
 
     coco_eval_loader = DataLoader(
         coco_dataset_eval,
-        batch_size=cfg.training.batch_size,
+        batch_size=1, # cfg.training.batch_size,
         collate_fn=FiftyOneTorchDataset.collate_fn,
         shuffle=cfg.dataset.shuffle,
     )
@@ -107,14 +192,20 @@ def training_func(cfg: DictConfig):
         # region Training
         for iteration, (image, annotations) in enumerate(coco_loader):
 
-            image = image.float().to("cuda") / 255
+            image = image.float().to("cuda")
             annotations = annotations
+
             result = model(image, annotations)
 
-            class_loss = result["classification"]
-            regress_loss = result["bbox_regression"]
+            class_loss = result["loss_classifier"]
+            regress_loss = result["loss_box_reg"]
+            objectness_loss = result["loss_objectness"]
+            loss_rpn_regress = result["loss_rpn_box_reg"]
 
-            batch_loss = class_loss + regress_loss
+            # if epoch > 50:
+            #     batch_loss = class_loss + regress_loss + objectness_loss + loss_rpn_regress
+            # else:
+            batch_loss = class_loss + regress_loss + objectness_loss + loss_rpn_regress
 
             if bool(batch_loss == 0):
                 continue
@@ -133,10 +224,10 @@ def training_func(cfg: DictConfig):
 
             now = time.strftime("%m/%d/%Y, %H:%M:%S")
 
-            # Iteration result
+            # Epoch result
             log.info(
                 f'{now} - Epoch: {epoch} | Iteration: {iteration} | Classification loss: {class_loss:1.5f} | '
-                f''
+                f'Objectness loss: {objectness_loss:1.5f} | RPN Regression loss: {loss_rpn_regress:1.5f} |'
                 f'Regression loss: {regress_loss:1.5f} | Running loss: {np.mean(epoch_loss):1.5f}'
             )
 
@@ -149,7 +240,7 @@ def training_func(cfg: DictConfig):
         eval_score = 0
 
         for iteration, (image, annotations) in enumerate(coco_eval_loader):
-            image = image.float().to("cuda") / 255
+            image = image.float().to("cuda")
             annotations = annotations
             result = model(image, annotations)
 
@@ -157,7 +248,7 @@ def training_func(cfg: DictConfig):
 
                 # Store the results of the evaluation
                 scores = item["scores"].detach().cpu().numpy()
-                sample_score = scores.mean()
+                sample_score = np.nan_to_num(scores.mean(), 0)
                 eval_score += sample_score / n_samples_eval
 
                 log.info(

@@ -1,11 +1,15 @@
 
 from albumentations.augmentations import RandomBrightnessContrast, HueSaturationValue, ShiftScaleRotate, GaussianBlur, \
-    ISONoise, Sharpen, ImageCompression, GridDistortion, RandomShadow, RandomSnow
+    ISONoise, Sharpen, ImageCompression, GridDistortion, RandomShadow, RandomSnow, RandomCrop, BBoxSafeRandomCrop, \
+    RandomSizedCrop, PadIfNeeded, Normalize
 from albumentations import OneOf, Compose, BboxParams
 import numpy as np
 import torch
 
 standard_augmentation = Compose([
+
+    PadIfNeeded(1280, 1280),
+    RandomSizedCrop([1280, 1280], 1280, 1280, always_apply=True),
     # Effekte durch Dokumentenlage
     ShiftScaleRotate(rotate_limit=3, scale_limit=0.1, p=0.7),
     # Effekte durch Dokument
@@ -29,15 +33,20 @@ standard_augmentation = Compose([
     ], p=0.4),
     # Kompression
     ImageCompression(quality_lower=60),
+    Normalize()
 
     # Distorsion
     # Not active due to bboxes
     # GridDistortion(distort_limit=5e-2, p=0.2)
-], bbox_params=BboxParams(format='coco', label_fields=['labels']))
+], bbox_params=BboxParams(format='coco', label_fields=['labels'], min_area=250, min_visibility=0.3))
 
+no_aug = Compose([PadIfNeeded(1280, 1280),
+                  RandomSizedCrop([1280, 1280], 1280, 1280, always_apply=True),
+                    Normalize()],
+                 bbox_params=BboxParams(format='coco', label_fields=['labels'], min_area=250, min_visibility=0.3))
 
 def augmentation_func(image, target):
-    bboxes = target["bboxes"].cpu().numpy()
+    bboxes = target["boxes"].cpu().numpy()
 
     image = np.moveaxis(image, 0, 2)
     shape = image.shape
@@ -56,14 +65,45 @@ def augmentation_func(image, target):
 
     transformed_image = np.moveaxis(transformed_image, 2, 0)
 
+    if target["boxes"].shape == torch.Size([0]):
+        target["boxes"] = torch.empty((0, 4)).to("cuda")
+        target["labels"] = torch.empty((0, ), dtype=torch.int64).to("cuda")
+        target["area"] = torch.empty((0, )).to("cuda")
+        target["iscrowd"] = torch.empty((0, )).to("cuda")
+
     return transformed_image, target
 
 
 def no_augmentation_func(image, target):
-    bboxes = target["bboxes"].cpu().numpy()
+
+    image = np.moveaxis(image, 0, 2)
+    shape = image.shape
+
+    bboxes = target["boxes"].cpu().numpy()
+
     bboxes = trafo_bboxes_from_coco(bboxes)
-    target["boxes"] = torch.tensor(bboxes.astype(np.float32)).to("cuda")
-    return image, target
+    bboxes = clip_boxes(bboxes, image.shape)
+    bboxes = trafo_bboxes_to_coco(bboxes)
+
+    transformed = no_aug(image=image, bboxes=bboxes, labels=target["labels"])
+
+    transformed_image = transformed['image']
+
+    transformed_image = np.moveaxis(transformed_image, 2, 0)
+
+    transformed_bboxes = np.array(transformed['bboxes'])
+
+    transformed_bboxes = trafo_bboxes_from_coco(transformed_bboxes)
+
+    target["boxes"] = torch.tensor(transformed_bboxes.astype(np.float32)).to("cuda")
+
+    if target["boxes"].shape == torch.Size([0]):
+        target["boxes"] = torch.empty((0, 4)).to("cuda")
+        target["labels"] = torch.empty((0, ), dtype=torch.int64).to("cuda")
+        target["area"] = torch.empty((0, )).to("cuda")
+        target["iscrowd"] = torch.empty((0, )).to("cuda")
+
+    return transformed_image, target
 
 
 def clip_boxes(bboxes, im_shape):
